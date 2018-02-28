@@ -2,17 +2,14 @@
 class SettingItem
 {
 private:
-	
-	unsigned short int value;
-	unsigned short int max_value;
-	unsigned short int min_value;
 public:
-	char advanced[3][6];
-	char settingname[30];
-	void setrange(unsigned short int max, unsigned short int min);
-	void changevalue(short int val);
-	unsigned short int getvalue();
-	SettingItem *nextSettingItem;
+	short value;
+	unsigned char max_value;
+	unsigned char  min_value;
+	void setrange(unsigned char max, unsigned char min);
+	void setvalue(unsigned char val);
+	void changevalue(short val);
+	SettingItem *nextSettingItem;	
 	SettingItem();
 	~SettingItem();
 };
