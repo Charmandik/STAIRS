@@ -19,8 +19,6 @@
 
 CRGB leds[NUM_LEDS];
 
-uint8_t STEPS = 18;
-
 #define SETTINGS 1
 #define WORKING 2
 #define LIGHTUP  78
@@ -43,43 +41,40 @@ uint8_t counterB = 0;
 uint8_t counterC = 18;
 uint8_t counterD = 0;
 uint8_t randColor;
-uint8_t stepsVal[18];
-long timeoutStart;
-long currentTime;
-uint8_t currentState; //состояние - лестница включена, загорается вверх, вниз, выключается вверх, вниз, вся, навстречу
-uint8_t BotMoveSensor;   //датчик приблоижения нижний
-uint8_t TopMoveSensor;   //датчик приближения верхний
-uint8_t buffBot;   //датчик приблоижения нижний
-uint8_t buffTop;   //датчик приближения верхний
-uint8_t light1;   //датчик освещения нижний
-uint8_t light2;   //датчик освещения верхний
-uint8_t light;        //уровень освещения текущий
+uint8_t falseTimer = 0;
+uint8_t stepsVal[27];
+unsigned long timeoutStart;
+unsigned long currentTime;
+uint8_t currentState; //СЃРѕСЃС‚РѕСЏРЅРёРµ - Р»РµСЃС‚РЅРёС†Р° РІРєР»СЋС‡РµРЅР°, Р·Р°РіРѕСЂР°РµС‚СЃСЏ РІРІРµСЂС…, РІРЅРёР·, РІС‹РєР»СЋС‡Р°РµС‚СЃСЏ РІРІРµСЂС…, РІРЅРёР·, РІСЃСЏ, РЅР°РІСЃС‚СЂРµС‡Сѓ
+uint8_t BotMoveSensor;   //РґР°С‚С‡РёРє РїСЂРёР±Р»РѕРёР¶РµРЅРёСЏ РЅРёР¶РЅРёР№
+uint8_t TopMoveSensor;   //РґР°С‚С‡РёРє РїСЂРёР±Р»РёР¶РµРЅРёСЏ РІРµСЂС…РЅРёР№
+uint8_t buffBot;   //РґР°С‚С‡РёРє РїСЂРёР±Р»РѕРёР¶РµРЅРёСЏ РЅРёР¶РЅРёР№
+uint8_t buffTop;   //РґР°С‚С‡РёРє РїСЂРёР±Р»РёР¶РµРЅРёСЏ РІРµСЂС…РЅРёР№
+uint8_t light1;   //РґР°С‚С‡РёРє РѕСЃРІРµС‰РµРЅРёСЏ РЅРёР¶РЅРёР№
+uint8_t light2;   //РґР°С‚С‡РёРє РѕСЃРІРµС‰РµРЅРёСЏ РІРµСЂС…РЅРёР№
+uint8_t light;        //СѓСЂРѕРІРµРЅСЊ РѕСЃРІРµС‰РµРЅРёСЏ С‚РµРєСѓС‰РёР№
 uint8_t oldLight;
-uint8_t switch1;   //проходной
+uint8_t switch1;   //РїСЂРѕС…РѕРґРЅРѕР№
 uint8_t switched = 0;
-uint8_t mode; //Режим - ночь вкл, день выкл, настройки
+uint8_t mode; //Р РµР¶РёРј - РЅРѕС‡СЊ РІРєР», РґРµРЅСЊ РІС‹РєР», РЅР°СЃС‚СЂРѕР№РєРё
 uint8_t btn_flag = 0;
 uint8_t setting_id;
 
-SettingItem BRIGHTNESS;  //Общая яркость лестниц
-SettingItem SPEED;     //Скорость увеличения яркости
-SettingItem ANIMATION;//Выбор типа анимации
-SettingItem COLOR;    //Выбор цвета
-SettingItem ADVANCED;  //Расширенные настройки
-SettingItem STEPNUMBER;  //Регулировка количества ступеней
-SettingItem DELAY_TIME;  //Задержка до выключения
-SettingItem LIGHTSENSORS;  // Выбор работающих датчиков  освещенности
-SettingItem LUMINOSITY; // уровень освещенности, при котором начинает работать контроллер в ночном режиме
-SettingItem NIGHT_BRIGHTNESS;//Уровень яркости ночной подсветки
-SettingItem SENSORS_DISTANCE; //Этот пункт позволяет производить калибровку расстояния, на котором срабатывают датчики
-SettingItem ADAPTIVE;//Адаптивная яркость - вкл/выкл
-SettingItem EXIT;//Выход
+SettingItem BRIGHTNESS;  //РћР±С‰Р°СЏ СЏСЂРєРѕСЃС‚СЊ Р»РµСЃС‚РЅРёС†
+SettingItem SPEED;     //РЎРєРѕСЂРѕСЃС‚СЊ СѓРІРµР»РёС‡РµРЅРёСЏ СЏСЂРєРѕСЃС‚Рё
+SettingItem ANIMATION;//Р’С‹Р±РѕСЂ С‚РёРїР° Р°РЅРёРјР°С†РёРё
+SettingItem COLOR;    //Р’С‹Р±РѕСЂ С†РІРµС‚Р°
+SettingItem ADVANCED;  //Р Р°СЃС€РёСЂРµРЅРЅС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё
+SettingItem STEPNUMBER;  //Р РµРіСѓР»РёСЂРѕРІРєР° РєРѕР»РёС‡РµСЃС‚РІР° СЃС‚СѓРїРµРЅРµР№
+SettingItem DELAY_TIME;  //Р—Р°РґРµСЂР¶РєР° РґРѕ РІС‹РєР»СЋС‡РµРЅРёСЏ
+SettingItem LIGHTSENSORS;  // Р’С‹Р±РѕСЂ СЂР°Р±РѕС‚Р°СЋС‰РёС… РґР°С‚С‡РёРєРѕРІ  РѕСЃРІРµС‰РµРЅРЅРѕСЃС‚Рё
+SettingItem LUMINOSITY; // СѓСЂРѕРІРµРЅСЊ РѕСЃРІРµС‰РµРЅРЅРѕСЃС‚Рё, РїСЂРё РєРѕС‚РѕСЂРѕРј РЅР°С‡РёРЅР°РµС‚ СЂР°Р±РѕС‚Р°С‚СЊ РєРѕРЅС‚СЂРѕР»Р»РµСЂ РІ РЅРѕС‡РЅРѕРј СЂРµР¶РёРјРµ
+SettingItem NIGHT_BRIGHTNESS;//РЈСЂРѕРІРµРЅСЊ СЏСЂРєРѕСЃС‚Рё РЅРѕС‡РЅРѕР№ РїРѕРґСЃРІРµС‚РєРё
+SettingItem SENSORS_DISTANCE; //Р­С‚РѕС‚ РїСѓРЅРєС‚ РїРѕР·РІРѕР»СЏРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЊ РєР°Р»РёР±СЂРѕРІРєСѓ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ, РЅР° РєРѕС‚РѕСЂРѕРј СЃСЂР°Р±Р°С‚С‹РІР°СЋС‚ РґР°С‚С‡РёРєРё
+SettingItem ADAPTIVE;//РђРґР°РїС‚РёРІРЅР°СЏ СЏСЂРєРѕСЃС‚СЊ - РІРєР»/РІС‹РєР»
+SettingItem EXIT;//Р’С‹С…РѕРґ
 SettingItem COLOR_MODE;
 SettingItem COLOR_SPEED;
-SettingItem TEMPERATURE;
-SettingItem RED_COLOR;
-SettingItem GREEN_COLOR;
-SettingItem BLUE_COLOR;
 SettingItem HUE_COLOR;
 SettingItem SATURATION_COLOR;
 
@@ -152,7 +147,7 @@ void InitializeSetting()
   ANIMATION.setrange(0, 3);
   COLOR.setrange(0, 1);
   ADVANCED.setrange(0, 1);
-  STEPNUMBER.setrange(3, 18);
+  STEPNUMBER.setrange(3, 27);
   DELAY_TIME.setrange(1, 60);
   NIGHT_BRIGHTNESS.setrange(0, 100);
   LIGHTSENSORS.setrange(0, 4);
@@ -160,12 +155,8 @@ void InitializeSetting()
   SENSORS_DISTANCE.setrange(0, 2);
   ADAPTIVE.setrange(0, 1);
   EXIT.setrange(0, 2);
-  COLOR_MODE.setrange(0, 3);
+  COLOR_MODE.setrange(0, 2);
   COLOR_SPEED.setrange(1, 16);
-  TEMPERATURE.setrange(0, 7);
-  RED_COLOR.setrange(0, 255);
-  GREEN_COLOR.setrange(0, 255);
-  BLUE_COLOR.setrange(0, 255);
   HUE_COLOR.setrange(0, 255);
   SATURATION_COLOR.setrange(0, 255);
 
@@ -173,14 +164,10 @@ void InitializeSetting()
   SPEED.nextSettingItem = &ANIMATION;
   ANIMATION.nextSettingItem = &COLOR;
   COLOR.nextSettingItem = &COLOR_MODE;
-  COLOR_MODE.nextSettingItem = &RED_COLOR;
-  RED_COLOR.nextSettingItem = &GREEN_COLOR;
-  GREEN_COLOR.nextSettingItem = &BLUE_COLOR;
-  BLUE_COLOR.nextSettingItem = &HUE_COLOR;
-  HUE_COLOR.nextSettingItem = &SATURATION_COLOR;
-  SATURATION_COLOR.nextSettingItem = &COLOR_SPEED;
-  COLOR_SPEED.nextSettingItem = &TEMPERATURE;
-  TEMPERATURE.nextSettingItem = &ADVANCED;
+  COLOR_MODE.nextSettingItem = &SATURATION_COLOR;
+  SATURATION_COLOR.nextSettingItem = &HUE_COLOR;
+  HUE_COLOR.nextSettingItem = &COLOR_SPEED;
+  COLOR_SPEED.nextSettingItem = &ADVANCED;
   ADVANCED.nextSettingItem = &STEPNUMBER;
   STEPNUMBER.nextSettingItem = &DELAY_TIME;
   DELAY_TIME.nextSettingItem = &LIGHTSENSORS;
@@ -191,29 +178,36 @@ void InitializeSetting()
   ADAPTIVE.nextSettingItem = &EXIT;
   EXIT.nextSettingItem = &BRIGHTNESS;
 
-  BRIGHTNESS.setvalue(32);
-  SPEED.setvalue(6);
-  ANIMATION.setvalue(0);
-  COLOR.setvalue(0);
-  COLOR_MODE.setvalue(1);
-  HUE_COLOR.setvalue(0);
-  SATURATION_COLOR.setvalue(255);
-  COLOR_SPEED.setvalue(1);
-  TEMPERATURE.setvalue(0);
-  ADVANCED.setvalue(0);
-  STEPNUMBER.setvalue(18);
-  DELAY_TIME.setvalue(2);
-  LIGHTSENSORS.setvalue(0);
-  LUMINOSITY.setvalue(0);
-  NIGHT_BRIGHTNESS.setvalue(0);
-  SENSORS_DISTANCE.setvalue(0);
-  ADAPTIVE.setvalue(1);
-  EXIT.setvalue(0);
+  //  BRIGHTNESS.setvalue(32);
+  //  SPEED.setvalue(8);
+  //  ANIMATION.setvalue(0);
+  //  COLOR.setvalue(1);
+  //  COLOR_MODE.setvalue(1);
+  //  HUE_COLOR.setvalue(0);
+  //  SATURATION_COLOR.setvalue(255);
+  //  COLOR_SPEED.setvalue(1);
+  //  ADVANCED.setvalue(0);
+  //  STEPNUMBER.setvalue(16);
+  //  DELAY_TIME.setvalue(10);
+  //  LIGHTSENSORS.setvalue(0);
+  //  LUMINOSITY.setvalue(0);
+  //  NIGHT_BRIGHTNESS.setvalue(50);
+  //  SENSORS_DISTANCE.setvalue(0);
+  //  ADAPTIVE.setvalue(1);
+  //  EXIT.setvalue(0);
 }
 
 void changeVal(short number, uint8_t counter)
 {
-  stepsVal[counter] = constrain(stepsVal[counter] + number, 0, 255);
+  if ((counter == 0) || (counter == STEPNUMBER.value - 1))
+  {
+    if (number < 0)
+      stepsVal[counter] = constrain(stepsVal[counter] + number, NIGHT_BRIGHTNESS.value - 1, 255);
+    else
+      stepsVal[counter] = constrain(stepsVal[counter] + number, 0, 255);
+  }
+  else
+    stepsVal[counter] = constrain(stepsVal[counter] + number, 0, 255);
 }
 
 bool checkON(uint8_t value)
@@ -221,11 +215,13 @@ bool checkON(uint8_t value)
   uint8_t counter = 0;
   for (uint8_t i = 0; i < STEPNUMBER.value; i++)
   {
-    if (stepsVal[i] == value)
+    if (value == 0)
     {
-      counter++;
-
+      if ((stepsVal[i] == value) || ((i == 0) && (stepsVal[i] <= NIGHT_BRIGHTNESS.value - 1))  ||  ((i == STEPNUMBER.value - 1) && (stepsVal[i] <= NIGHT_BRIGHTNESS.value - 1)))
+        counter++;
     }
+    else if (stepsVal[i] == value)
+      counter++;
   }
   if (counter == STEPNUMBER.value)
     return true;
@@ -301,20 +297,23 @@ void getSensors()
       light = 0;
       break;
     case (1):
-      light = map(light2, 0, 127, 0, 100);
+      light = light1;
       break;
     case (2):
-      light =  map(light1, 0, 127, 0, 100);
+      light = light2;
       break;
     case (3):
-      light = ( map(light1, 0, 127, 0, 100) + map(light2, 0, 127, 0, 100)) / 2;
+      light = (light1 + light2) / 2;
       break;
     case (4):
-      light = map(constrain(analogRead(LIGHTSENSOR), 0, 919), 0, 919, 0, 127);
+      light = map(constrain(analogRead(LIGHTSENSOR), 0, 919), 0, 919, 0, 100);
       break;
   }
-  if ((oldLight != light) && (CurrentItem == &LUMINOSITY))
+  if ((oldLight != light) && ((CurrentItem == &LUMINOSITY) || (CurrentItem == &LIGHTSENSORS) || (CurrentItem == &ADAPTIVE)))
+  {
+    updateSettings();
     LCD_renew();
+  }
 }
 
 void readSettings()
@@ -342,10 +341,12 @@ void updateSettings()
 {
   if (ADAPTIVE.value == 0)
   {
-    uint8_t coeff = map(light, 0, 127, 127, 32);
-    uint16_t correctedBrightness = (BRIGHTNESS.value * 7) * 32 / coeff;
-    if (((BRIGHTNESS.value * 7) > 0) & (correctedBrightness == 0)) correctedBrightness = (BRIGHTNESS.value * 7);
-    FastLED.setBrightness(correctedBrightness);
+    if (light < 15)
+      FastLED.setBrightness(BRIGHTNESS.value * 7 * 0.5);
+    else if ((light > 15) && (light < 50))
+      FastLED.setBrightness(BRIGHTNESS.value * 7 * 0.75);
+    else
+      FastLED.setBrightness(BRIGHTNESS.value * 7);
   }
   else
     FastLED.setBrightness(BRIGHTNESS.value * 7);
@@ -357,61 +358,60 @@ void stepsWork()
   {
     case (STAIRSOFF):
 
-      setSteps(0);
       break;
     case (STAIRSON):
       setSteps(255);
       break;
 
     case (LIGHTUP) :
-      for (uint8_t i = 0 ; i < STEPNUMBER.value; ++i)
+      for (uint8_t i = 0 ; i <= (STEPNUMBER.value - 1); ++i)
       {
         if (stepsVal[i] < 255)
         {
-          if (ANIMATION.value != 3)
-            changeVal(SPEED.value, i);
-          if ((ANIMATION.value == 1) && (STEPNUMBER.value - i > (STEPNUMBER.value / 4)))
+          switch (ANIMATION.value)
           {
-            for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
-            {
-              if (stepsVal[i] - stepsVal[k + i] >= 63 * k)
-                changeVal(SPEED.value / 2, k + i);
-            }
-          }
-          else if (ANIMATION.value == 2)
-          {
-            changeVal(255, i);
-            delay(255 / SPEED.value);
-          }
-          else if (ANIMATION.value == 3)
-          {
-            if (counterA <= STEPNUMBER.value)
-            {
-              for (uint8_t w = 0; w < STEPNUMBER.value - counterB; w++)
+            case (0):
+              changeVal(SPEED.value, i);
+              break;
+            case (1):
+              changeVal(SPEED.value / 2, i);
+              if ( (STEPNUMBER.value - i > (STEPNUMBER.value / 4)))
+                for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
+                {
+                  if (stepsVal[i] - stepsVal[k + i] >= 63 * k)
+                    changeVal(SPEED.value / 2, k + i);
+                }
+              else
+                for (uint8_t k = 1 ; k <= STEPNUMBER.value - i - 1; k++)
+                {
+                  if (stepsVal[i] - stepsVal[k + i] >= 63 * k)
+                    changeVal(SPEED.value / 2, k + i);
+                }
+              break;
+            case (2):
+              changeVal(255, i);
+              delay(1800 / SPEED.value);
+              break;
+            case (3):
+              for (uint8_t w = STEPNUMBER.value - 1; w > counterD; w = constrain(w - 1, 0, STEPNUMBER.value - 1))
               {
-                if (w != counterA)
+                if (w != counterC - 1)
                   changeVal(-255, w);
               }
-              changeVal(255, counterA);
-              delay(500 / SPEED.value);
-              counterA = constrain(counterA + 1, 0, STEPNUMBER.value);
-              if (counterA == STEPNUMBER.value)
+              counterC = constrain(counterC - 1, 0, STEPNUMBER.value - 1);
+              changeVal(255, counterC);
+              delay(50 / SPEED.value);
+              if (counterC == 0)
               {
-                counterA = 0;
-                counterB = constrain(counterB + 1, 2, STEPNUMBER.value);
-                delay(500 / SPEED.value);
+                counterC = STEPNUMBER.value;
+                counterD = constrain(counterD + 1, 0, STEPNUMBER.value - 1);
+                delay(50 / SPEED.value);
               }
-              if (counterB == STEPNUMBER.value)
-              {
-                counterB = 0;
-                delay(100);
-              }
-            }
+              break;
           }
           if (checkON(255))
           {
             timeoutStart = currentTime;
-            Serial.println("h");
           }
           break;
         }
@@ -423,42 +423,55 @@ void stepsWork()
       {
         if (stepsVal[i] < 255)
         {
-          if (ANIMATION.value != 3)
-            changeVal(SPEED.value, i);
-          if ((ANIMATION.value == 1) && (i >= (STEPNUMBER.value / 4)))
+          switch (ANIMATION.value)
           {
-            for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
-            {
-              if (stepsVal[i] - stepsVal[i - k] >= 63 * k)
-                changeVal(SPEED.value / 2, i - k);
-            }
-          }
-          else if (ANIMATION.value == 2)
-          {
-            changeVal(255, i);
-            delay(255 / SPEED.value);
-          }
-          else if (ANIMATION.value == 3)
-          {
-            for (uint8_t w = STEPNUMBER.value - 1; w > counterD; w = constrain(w - 1, 0, 17))
-            {
-              if (w != counterC - 1)
-                changeVal(-255, w);
-            }
-            counterC = constrain(counterC - 1, 0, 18);
-            changeVal(255, counterC);
-            delay(500 / SPEED.value);
-            if (counterC == 0)
-            {
-              counterC = 18;
-              counterD = constrain(counterD + 1, 0, 17);
-              delay(500 / SPEED.value);
-            }
+            default:
+              changeVal(SPEED.value, i);
+              break;
+            case (1):
+              changeVal(SPEED.value / 2, i);
+              if (i >= (STEPNUMBER.value / 4))
+              {
+                for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
+                {
+                  if (stepsVal[i] - stepsVal[i - k] >= 63 * k)
+                    changeVal(SPEED.value / 2, i - k);
+                }
+              }
+              else
+                for (uint8_t k = 1 ; k <= i; k++)
+                {
+                  if (stepsVal[i] - stepsVal[i - k] >= 63 * k)
+                    changeVal(SPEED.value / 2, i - k);
+                }
+              break;
+            case (2):
+              changeVal(255, i);
+              delay(1800 / SPEED.value);
+              break;
+            case (3):
+
+              if (counterA <= STEPNUMBER.value)
+              {
+                for (uint8_t w = 0; w < STEPNUMBER.value - counterB; w++)
+                {
+                  if (w != counterA)
+                    changeVal(-255, w);
+                }
+                changeVal(255, counterA);
+                delay(50 / SPEED.value);
+                counterA = constrain(counterA + 1, 0, STEPNUMBER.value);
+                if (counterA == STEPNUMBER.value)
+                {
+                  counterA = 0;
+                  counterB = constrain(counterB + 1, 2, STEPNUMBER.value);
+                  delay(50 / SPEED.value);
+                }
+              }
+              break;
           }
           if (checkON(255))
           {
-            if (mode != WORKING)
-              counterD = 0;
             timeoutStart = currentTime;
           }
           break;
@@ -484,7 +497,7 @@ void stepsWork()
           else if (ANIMATION.value == 2)
           {
             changeVal(255, i);
-            delay(255 / SPEED.value);
+            delay(900 / SPEED.value);
           }
           else if (ANIMATION.value == 3)
           {
@@ -495,10 +508,11 @@ void stepsWork()
             }
             counterA = constrain(counterA + 1, STEPNUMBER.value / 2 - 1, STEPNUMBER.value - 1);
             changeVal(255, counterA);
-            delay(100);
+            delay(50 / SPEED.value);
 
             if (counterA == STEPNUMBER.value - 1)
             {
+              delay(50 / SPEED.value);
               counterA =  STEPNUMBER.value / 2 - 1;
               counterB = constrain(counterB + 1, 2, STEPNUMBER.value / 2);
             }
@@ -527,7 +541,7 @@ void stepsWork()
           else if (ANIMATION.value == 2)
           {
             changeVal(255, i);
-            delay(255 / SPEED.value);
+            delay(900 / SPEED.value);
           }
           else if (ANIMATION.value == 3)
           {
@@ -538,10 +552,11 @@ void stepsWork()
             }
             counterC = constrain(counterC - 1, 0, STEPNUMBER.value / 2);
             changeVal(255, counterC);
-            delay(100);
+            delay(50 / SPEED.value);
 
             if (counterC == 0)
             {
+              delay(50 / SPEED.value);
               counterC = STEPNUMBER.value / 2;
               counterD = constrain(counterD + 1, 0, STEPNUMBER.value / 2);
             }
@@ -557,30 +572,40 @@ void stepsWork()
       break;
 
     case (OFFDOWN):
-      for (uint8_t i = STEPNUMBER.value - 1 ; i >= 0; --i)
+      for (uint8_t i = STEPNUMBER.value - 1; i >= 0; --i)
       {
-        if ((stepsVal[i] > 0) && ((stepsVal[0] >= NIGHT_BRIGHTNESS.value) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value)))
+        if (((i == 0) && (stepsVal[0] >= NIGHT_BRIGHTNESS.value)) || ((i == STEPNUMBER.value - 1) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value)) || ((i != 0) && (i != STEPNUMBER.value - 1) && (stepsVal[i] > 0)))
         {
-          if (ANIMATION.value != 3)
-            changeVal(-(SPEED.value), i);
           switch (ANIMATION.value)
           {
             case (1):
-              if (i > STEPNUMBER.value / 4)
+              if (i > (STEPNUMBER.value / 4))
               {
-                for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
+                changeVal(-SPEED.value, i);
+                for (uint8_t k = 1; k <= STEPNUMBER.value / 4; k++)
                 {
-                  if (stepsVal[i] - stepsVal[i - k] <= 63 * k)
-                    changeVal(-SPEED.value / 2, i - k);
+                  if ((stepsVal[i] - stepsVal[i - k]) >= k * 63)
+                    changeVal(-SPEED.value, i - k);
+                } break;
+              }
+              else
+              {
+                changeVal(-SPEED.value, i);
+                for (uint8_t k = 1; k <= i; k++)
+                {
+                  if ((stepsVal[i] - stepsVal[i - k]) >= k * 63)
+                    changeVal(-SPEED.value, i - k);
                 }
+                break;
               }
               break;
             case (2):
               changeVal(-255, i);
-              delay(255 / SPEED.value);
+              delay(1800 / SPEED.value);
               break;
-
-
+            default:
+              changeVal(-(SPEED.value), i);
+              break;
           }
           break;
         }
@@ -588,26 +613,37 @@ void stepsWork()
       break;
 
     case (OFFUP):
-
-      for (uint8_t i = 0 ; i < STEPNUMBER.value; ++i)
+      for (uint8_t i = 0 ; i < STEPNUMBER.value + 5; ++i)
       {
-        if ((stepsVal[i] > 0) && ((stepsVal[0] >= NIGHT_BRIGHTNESS.value) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value)))
+        if (((i == 0) && (stepsVal[0] >= NIGHT_BRIGHTNESS.value)) || ((i == STEPNUMBER.value - 1) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value - 1)) || ((i != 0) && (i != STEPNUMBER.value - 1) && (stepsVal[i] > 0)))
         {
-          if (ANIMATION.value != 3)
-            changeVal(-(SPEED.value), i);
           switch (ANIMATION.value)
           {
             case (1):
+              changeVal(-SPEED.value / 2, i);
               if (STEPNUMBER.value - i > STEPNUMBER.value / 4)
+              {
                 for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
                 {
                   if (stepsVal[k + i] - stepsVal[i]   >= 63 * k)
                     changeVal(-SPEED.value / 2, k + i);
                 }
+              }
+              else
+              {
+                for (uint8_t k = 1 ; k <= STEPNUMBER.value - i; k++)
+                {
+                  if (stepsVal[k + i] - stepsVal[i]   >= 63 * k)
+                    changeVal(-SPEED.value / 2, k + i);
+                }
+              }
               break;
             case (2):
               changeVal(-255, i);
-              delay(255 / SPEED.value);
+              delay(1800 / SPEED.value);
+              break;
+            default:
+              changeVal(-(SPEED.value), i);
               break;
           }
           break;
@@ -616,15 +652,17 @@ void stepsWork()
       break;
 
     case (OFFCROSS):
-      for (uint8_t i = STEPNUMBER.value / 2 ; i <= STEPNUMBER.value; ++i)
+      for (uint8_t i = STEPNUMBER.value / 2 ; i <= STEPNUMBER.value - 1; ++i)
       {
-        if ((stepsVal[i] > 0) && ((stepsVal[0] >= NIGHT_BRIGHTNESS.value) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value)))
+        if (((i == 0) && (stepsVal[0] >= NIGHT_BRIGHTNESS.value)) || ((i == STEPNUMBER.value - 1) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value - 1)) || ((i != 0) && (i != STEPNUMBER.value - 1) && (stepsVal[i] > 0)))
         {
-          if (ANIMATION.value != 3)
-            changeVal(-(SPEED.value), i);
           switch (ANIMATION.value)
           {
+            case (0):
+              changeVal(-(SPEED.value), i);
+              break;
             case (1):
+              changeVal(-(SPEED.value), i);
               if (STEPNUMBER.value - i > STEPNUMBER.value / 4)
                 for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
                 {
@@ -634,22 +672,28 @@ void stepsWork()
               break;
             case (2):
               changeVal(-255, i);
-              delay(255 / SPEED.value);
+              delay(900 / SPEED.value);
               break;
+            case (3):
+              changeVal(-(SPEED.value), i);
+              break;
+
           }
           break;
         }
       }
 
-      for (uint8_t i = STEPNUMBER.value / 2 - 1 ; i >= 0; --i)
+      for (uint8_t i = STEPNUMBER.value / 2  ; i >= 0; --i)
       {
-        if ((stepsVal[i] > 0) && ((stepsVal[0] >= NIGHT_BRIGHTNESS.value) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value)))
+        if (((i == 0) && (stepsVal[0] >= NIGHT_BRIGHTNESS.value)) || ((i == STEPNUMBER.value - 1) && (stepsVal[STEPNUMBER.value - 1] >= NIGHT_BRIGHTNESS.value - 1)) || ((i != 0) && (i != STEPNUMBER.value - 1) && (stepsVal[i] > 0)))
         {
-          if (ANIMATION.value != 3)
-            changeVal(-(SPEED.value), i);
           switch (ANIMATION.value)
           {
+            case (0):
+              changeVal(-(SPEED.value), i);
+              break;
             case (1):
+              changeVal(-(SPEED.value), i);
               if (i > STEPNUMBER.value / 4)
               {
                 for (uint8_t k = 1 ; k <= (STEPNUMBER.value / 4); k++)
@@ -661,9 +705,11 @@ void stepsWork()
               break;
             case (2):
               changeVal(-255, i);
-              delay(255 / SPEED.value);
+              delay(900 / SPEED.value);
               break;
-
+            case (3):
+              changeVal(-(SPEED.value), i);
+              break;
           }
           break;
         }
@@ -729,25 +775,24 @@ void updateStairsState()
       {
         randColor = random(255);
         currentState = STAIRSOFF;
-        
       }
       break;
 
     case (OFFDOWN):
+      counterB = 0;
       if (checkON(0))
       {
-         randColor = random(255);
+        randColor = random(255);
         currentState = STAIRSOFF;
-       
       }
       break;
 
     case (OFFUP):
+      counterD = 0;
       if (checkON(0))
       {
-         randColor = random(255);
+        randColor = random(255);
         currentState = STAIRSOFF;
-        
       }
       break;
   }
@@ -792,6 +837,7 @@ void button()
     mode = SETTINGS;
     CurrentItem = &BRIGHTNESS;
     setting_id = 0;
+    COLOR.setvalue(1);
     LCD.backlight();
     LCD_renew();
   }
@@ -814,7 +860,7 @@ void button()
           break;
         case (2):
           setting_id = 0;
-
+          COLOR.setvalue(1);
           CurrentItem = &BRIGHTNESS;
           changed = true;
           break;
@@ -825,7 +871,7 @@ void button()
       if (CurrentItem->value == 1)
       {
         CurrentItem = &EXIT;
-        setting_id = 20;//number of exit_name
+        setting_id = 16;//number of exit_name
         changed = true;
       }
     }
@@ -834,7 +880,7 @@ void button()
       if (CurrentItem->value == 1)
       {
         CurrentItem = &ADVANCED;
-        setting_id = 12;//number of advanced_name
+        setting_id = 8;//number of advanced_name
         changed = true;
       }
     }
@@ -844,30 +890,31 @@ void button()
       {
         case (0):
           CurrentItem = &SATURATION_COLOR;
-          setting_id = 9;//number of advanced_name
+          setting_id = 5;//number of advanced_name
           changed = true;
           break;
         case (1):
-          CurrentItem = &HUE_COLOR;
-          setting_id = 8;//number of hue
+          CurrentItem = &SATURATION_COLOR;
+          setting_id = 5;//number of advanced_name
           changed = true;
           break;
         case (2):
-          CurrentItem = &RED_COLOR;
-          setting_id = 5;//number of red color
-          changed = true;
-          break;
-        case (3):
-          CurrentItem = &TEMPERATURE;
-          setting_id = 11;//number of TEMPERATURE
+          CurrentItem = &ADVANCED;
+          setting_id = 8;//number of advanced_name
           changed = true;
           break;
       }
     }
-    else if ((CurrentItem == &BLUE_COLOR) || ((CurrentItem == &SATURATION_COLOR) && (COLOR_MODE.value != 0)))
+    else if (((CurrentItem == &SATURATION_COLOR) && (COLOR_MODE.value == 0)))
     {
-      CurrentItem = &TEMPERATURE;
-      setting_id = 11;//number of TEMPERATURE
+      CurrentItem = &COLOR_SPEED;
+      setting_id = 7;//number of red color
+      changed = true;
+    }
+    else if (((CurrentItem == &HUE_COLOR) && (COLOR_MODE.value == 1)))
+    {
+      CurrentItem = &ADVANCED;
+      setting_id = 8;//number of advanced_name
       changed = true;
     }
 
@@ -908,9 +955,9 @@ void LCD_renew()
     animation_answer4
   };
 
-  const char color_name[] PROGMEM = "Color settings?";
+  const char color_name[] PROGMEM = "Color set.?";
   const char color_answer1[] PROGMEM = "Yes";
-  const char color_answer2[] PROGMEM = "No";
+  const char color_answer2[] PROGMEM = "Skip";
   PGM_P color[] PROGMEM =
   {
     color_name,
@@ -919,35 +966,15 @@ void LCD_renew()
   };
 
   const char color_mode_name[] PROGMEM = "Color Mode?";
-  const char color_mode_answer1[] PROGMEM = "Dynamic color";
-  const char color_mode_answer2[] PROGMEM = "Constant HSV";
-  const char color_mode_answer3[] PROGMEM = "Constant RGB";
-  const char color_mode_answer4[] PROGMEM = "1 use 1 color";
+  const char color_mode_answer1[] PROGMEM = "Dynamic";
+  const char color_mode_answer2[] PROGMEM = "Static HSV";
+  const char color_mode_answer3[] PROGMEM = "1 use 1 color";
   PGM_P color_mode[] PROGMEM =
   {
     color_mode_name,
     color_mode_answer1,
     color_mode_answer2,
-    color_mode_answer3,
-    color_mode_answer4
-  };
-
-  const char red_color_name[] PROGMEM = "Red";
-  PGM_P red_color[] PROGMEM =
-  {
-    red_color_name
-  };
-
-  const char green_color_name[] PROGMEM = "Green";
-  PGM_P green_color[] PROGMEM =
-  {
-    green_color_name
-  };
-
-  const char blue_color_name[] PROGMEM = "Blue";
-  PGM_P blue_color[] PROGMEM =
-  {
-    blue_color_name
+    color_mode_answer3
   };
 
   const char hue_name[] PROGMEM = "Hue";
@@ -956,7 +983,7 @@ void LCD_renew()
     hue_name
   };
 
-  const char saturation_name[] PROGMEM = "Saturation";
+  const char saturation_name[] PROGMEM = "Sat";
   PGM_P saturation_color[] PROGMEM =
   {
     saturation_name
@@ -968,15 +995,9 @@ void LCD_renew()
     color_speed_name
   };
 
-  const char temperature_name[] PROGMEM = "Temperature";
-  PGM_P temperature[] PROGMEM =
-  {
-    temperature_name
-  };
-
   const char advanced_name[] PROGMEM = "Advanced?";
   const char advanced_answer1[] PROGMEM = "Yes";
-  const char advanced_answer2[] PROGMEM = "No";
+  const char advanced_answer2[] PROGMEM = "Skip";
   PGM_P advanced[] PROGMEM =
   {
     advanced_name,
@@ -984,7 +1005,7 @@ void LCD_renew()
     advanced_answer2
   };
 
-  const char stepnumber_name[] PROGMEM = "Steps count";
+  const char stepnumber_name[] PROGMEM = "Steps";
   PGM_P stepnumber[] PROGMEM =
   {
     stepnumber_name
@@ -998,10 +1019,10 @@ void LCD_renew()
 
   const char lightsensors_name[] PROGMEM = "Light sensors";
   const char lightsensors_answer1[] PROGMEM = "NO (ALWAYS ON)";
-  const char lightsensors_answer2[] PROGMEM = "LOWER";
-  const char lightsensors_answer3[] PROGMEM = "UPPER";
-  const char lightsensors_answer4[] PROGMEM = "AVERAGE";
-  const char lightsensors_answer5[] PROGMEM = "External";
+  const char lightsensors_answer2[] PROGMEM = "LOW";
+  const char lightsensors_answer3[] PROGMEM = "UP";
+  const char lightsensors_answer4[] PROGMEM = "AVG";
+  const char lightsensors_answer5[] PROGMEM = "Ext.";
   PGM_P lightsensors[] PROGMEM =
   {
     lightsensors_name,
@@ -1012,28 +1033,22 @@ void LCD_renew()
     lightsensors_answer5,
   };
 
-  const char luminosity_name[] PROGMEM = "Luminosity";
+  const char luminosity_name[] PROGMEM = "Light";
   PGM_P luminosity[] PROGMEM =
   {
     luminosity_name
   };
 
-  const char nightbrightness_name[] PROGMEM = "Standby light";
+  const char nightbrightness_name[] PROGMEM = "Night light";
   PGM_P nightbrightness[] PROGMEM =
   {
     nightbrightness_name
   };
 
   const char sensorsdistance_name[] PROGMEM = "Sensors";
-  const char sensorsdistance_answer1[] PROGMEM = "Upper";
-  const char sensorsdistance_answer2[] PROGMEM = "Lower";
-  const char sensorsdistance_answer3[] PROGMEM = "Skip";
   PGM_P sensorsdistance[] PROGMEM =
   {
-    sensorsdistance_name,
-    sensorsdistance_answer1,
-    sensorsdistance_answer2,
-    sensorsdistance_answer3
+    sensorsdistance_name
   };
 
   const char adaptive_name[] PROGMEM = "Adaptive";
@@ -1045,27 +1060,6 @@ void LCD_renew()
     adaptive_answer1,
     adaptive_answer2
   };
-
-  //  const char standbyscreen_name[] PROGMEM = "STAND BY SCREEN";
-  //  const char standbyscreen_answer1[] PROGMEM = "On";
-  //  const char standbyscreen_answer2[] PROGMEM = "Off";
-  //  PGM_P standbyscreen[] PROGMEM =
-  //  {
-  //    standbyscreen_name,
-  //    standbyscreen_answer1,
-  //    standbyscreen_answer2
-  //  };
-
-  //  const char language_name[] PROGMEM = "LANGUAGE";
-  //  const char language_answer1[] PROGMEM = "English";
-  //  const char language_answer2[] PROGMEM = "Russian";
-  //  PGM_P language[] PROGMEM =
-  //  {
-  //    language_name,
-  //    language_answer1,
-  //    language_answer2
-  //  };
-
 
   const char exit_name[] PROGMEM = "Exit";
   const char exit_answer1[] PROGMEM = "Save&Exit";
@@ -1086,13 +1080,9 @@ void LCD_renew()
     animation,
     color,
     color_mode,
-    red_color,
-    green_color,
-    blue_color,
-    hue_color,
     saturation_color,
+    hue_color,
     color_speed,
-    temperature,
     advanced,
     stepnumber,
     delaytime,
@@ -1101,8 +1091,6 @@ void LCD_renew()
     nightbrightness,
     sensorsdistance,
     adaptive,
-    //    standbyscreen,
-    //language,
     Exit
   };
 
@@ -1110,17 +1098,19 @@ void LCD_renew()
   LCD.home();
 
   if (mode == WORKING)
-  {
     LCD.print("    WORKING");
-  }
   else
   {
     LCD.write((uint8_t)0);
     LCD.print(settings_name[setting_id][0]);
     LCD.print(": ");
-    if ((CurrentItem == &STEPNUMBER) || (CurrentItem == &COLOR_SPEED) || (CurrentItem == &RED_COLOR) || (CurrentItem == &BLUE_COLOR) || (CurrentItem == &GREEN_COLOR)
-        || (CurrentItem == &HUE_COLOR) || (CurrentItem == &SATURATION_COLOR) || (CurrentItem == &TEMPERATURE) || (CurrentItem == &DELAY_TIME) || (CurrentItem == &LUMINOSITY)
-        || (CurrentItem == &NIGHT_BRIGHTNESS)  || (CurrentItem == &BRIGHTNESS) || (CurrentItem == &SPEED) || (CurrentItem == &ADAPTIVE) ||  (CurrentItem == &LIGHTSENSORS))
+    if ((CurrentItem == &ANIMATION) || (CurrentItem == &ADVANCED) || (CurrentItem == &EXIT) || (CurrentItem == &COLOR))
+    {
+      setSteps(0);
+      LCD.setCursor(0, 1);
+      LCD.print(settings_name[setting_id][CurrentItem->value + 1]);
+    }
+    else
     {
       if ((CurrentItem == &BRIGHTNESS) || (CurrentItem == &SPEED))
       {
@@ -1143,12 +1133,12 @@ void LCD_renew()
         LCD.print("NOW: ");
         LCD.print(light);
         LCD.setCursor(14, 0);
-        if (LUMINOSITY.value < light)
+        if (LUMINOSITY.value > light)
           LCD.write((uint8_t)3);
         else
           LCD.write((uint8_t)4);
       }
-      else if ((CurrentItem == &RED_COLOR) || (CurrentItem == &BLUE_COLOR) || (CurrentItem == &GREEN_COLOR) || (CurrentItem == &HUE_COLOR) || (CurrentItem == &SATURATION_COLOR) || (CurrentItem == &TEMPERATURE))
+      else if ((CurrentItem == &HUE_COLOR) || (CurrentItem == &SATURATION_COLOR))
       {
         setSteps(255);
         LCD.setCursor(0, 1);
@@ -1173,13 +1163,13 @@ void LCD_renew()
           LCD.print(light);
           LCD.print("/100");
         }
-        else if (CurrentItem == &ADAPTIVE)
-        {
-          updateSettings();
-          setSteps(255);
-          LCD.setCursor(0, 1);
-          LCD.print(settings_name[setting_id][CurrentItem->value + 1]);
-        }
+      }
+      else if ((CurrentItem == &ADAPTIVE) || (CurrentItem == &COLOR_MODE))
+      {
+        updateSettings();
+        setSteps(255);
+        LCD.setCursor(0, 1);
+        LCD.print(settings_name[setting_id][CurrentItem->value + 1]);
       }
       else
       {
@@ -1191,15 +1181,12 @@ void LCD_renew()
         else if (CurrentItem == &STEPNUMBER)
           LCD.print(" steps");
         else if (CurrentItem == &NIGHT_BRIGHTNESS)
+        {
+          changeVal(map(NIGHT_BRIGHTNESS.value, 0, 100, 0, 255), 0);
+          changeVal(map(NIGHT_BRIGHTNESS.value, 0, 100, 0, 255), STEPNUMBER.value - 1);
           LCD.print("%");
+        }
       }
-    }
-    else
-    {
-      setSteps(0);
-      LCD.setCursor(0, 1);
-      LCD.print(settings_name[setting_id][CurrentItem->value + 1]);
-
     }
   }
 }
@@ -1229,6 +1216,8 @@ void printStars()
   }
 }
 
+
+
 void setup()
 {
   wdt_disable();
@@ -1245,7 +1234,7 @@ void setup()
   currentState = STAIRSOFF;
   pinMode(LED, OUTPUT);
   delay( 500 ); // power-up safety delay
-  //Инициализация выходов WS2811
+
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   pinMode(encPinA, INPUT_PULLUP); // set pinA as an input, pulled HIGH to the logic voltage (5V or 3.3V for most cases)
   pinMode(encPinB, INPUT_PULLUP); // set pinB as an input, pulled HIGH to the logic voltage (5V or 3.3V for most cases)
@@ -1262,20 +1251,22 @@ void setup()
   LCD.setCursor(0, 1);
   LCD.setCursor(1, 1);
   LCD.print("  CONTROLLER");
-  InitializeSetting();  // Инициализация объектов класса SettingItem(меню)
+  InitializeSetting();  // Р�РЅРёС†РёР°Р»РёР·Р°С†РёСЏ РѕР±СЉРµРєС‚РѕРІ РєР»Р°СЃСЃР° SettingItem(РјРµРЅСЋ)
   wdt_enable (WDTO_2S);
+
 }
 
 void loop()
 {
   wdt_reset();
-
   CHSV hsvColor;
   switch (COLOR_MODE.value)
   {
     case (0):
-      hsvColor.hue += COLOR_SPEED.value;
-      hsvColor.saturation = 255;
+      falseTimer++;
+      if (falseTimer / (COLOR_SPEED.value + 19) == 0)
+        hsvColor.hue++;
+      hsvColor.saturation = SATURATION_COLOR.value;
       hsvColor.value = 255;
       hsv2rgb_raw(hsvColor, leds[13]);
       break;
@@ -1286,13 +1277,8 @@ void loop()
       hsv2rgb_raw(hsvColor, leds[13]);
       break;
     case (2):
-      leds[13].r = RED_COLOR.value;
-      leds[13].g = GREEN_COLOR.value;
-      leds[13].b = BLUE_COLOR.value;
-      break;
-    case (3):
       hsvColor.hue = randColor;
-      hsvColor.saturation = SATURATION_COLOR.value;
+      hsvColor.saturation = randColor;
       hsvColor.value = 255;
       hsv2rgb_raw(hsvColor, leds[13]);
       break;
@@ -1310,17 +1296,20 @@ void loop()
     updateStairsState();
     stepsWork();
   }
-  else if ((CurrentItem == &SPEED) || (CurrentItem == &ANIMATION) || (CurrentItem == &COLOR_SPEED) || (CurrentItem == &COLOR_MODE) ) // включает выбранную анимацию подсветки вверх при настройке
+  else if ((CurrentItem == &SPEED) || (CurrentItem == &ANIMATION) || (CurrentItem == &COLOR_SPEED) || ((CurrentItem == &COLOR_MODE) && (COLOR_MODE.value != 1))) // РІРєР»СЋС‡Р°РµС‚ РІС‹Р±СЂР°РЅРЅСѓСЋ Р°РЅРёРјР°С†РёСЋ РїРѕРґСЃРІРµС‚РєРё РІРІРµСЂС… РїСЂРё РЅР°СЃС‚СЂРѕР№РєРµ
   {
     if (checkON(255))
     {
-      currentState = OFFUP;
-      
+      counterA = 0;
+      counterB = 0;
+      counterC = 0;
+      counterD = 0;
+      currentState = OFFCROSS;
     }
     else if (checkON(0))
     {
-    randColor = random(255);
-      currentState = LIGHTUP;
+      randColor = random(255);
+      currentState = LIGHTCROSS;
     }
     stepsWork();
   }
@@ -1333,7 +1322,7 @@ void loop()
 
   if (digitalRead(BUTTON) == HIGH && btn_flag == 1)  //now it's useless condition
   {
-    btn_flag = 0; //обнуляем переменную flag
+    btn_flag = 0; //РѕР±РЅСѓР»СЏРµРј РїРµСЂРµРјРµРЅРЅСѓСЋ flag
   }
   if (oldEncPos != encoderPos)
   {
@@ -1344,6 +1333,7 @@ void loop()
   FastLED.show();
   FastLED.delay(1000 / 300);
 }
+
 
 
 
