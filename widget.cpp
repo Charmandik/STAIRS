@@ -753,7 +753,6 @@ void Widget::on_pushButton_3_clicked()
 void Widget::on_pushButton_4_clicked()
 {
     tb->deleteLater();
-    tb->deleteLater();
     foreach (Set *a, setsVector)
     {
         lay->removeWidget(a);
@@ -761,5 +760,6 @@ void Widget::on_pushButton_4_clicked()
         deleteSetSlot(a);
     }
     emit addSet();
+    qDebug()<<"test";
 
 }
